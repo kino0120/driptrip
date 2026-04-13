@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "coffee-log-sns",
+    "name": "DripTrip",
     "slug": "coffee-log-sns",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kino0120.driptrip",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "DripTrip uses your photo library to let you attach coffee photos to your logs and scan bean package labels with OCR to automatically fill in origin, roast level, and other coffee details."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +29,23 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9fdff02b-e44e-4dac-bcd1-321a77ea014b"
+      }
+    },
+    "owner": "kino0120",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          }
+        }
+      ],
+      "expo-secure-store"
+    ]
   }
 }
