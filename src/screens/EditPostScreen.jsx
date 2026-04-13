@@ -7,6 +7,43 @@ import RadarChart from '../components/RadarChart';
 import ScoreSlider from '../components/ScoreSlider';
 import { COUNTRIES, normalizeCountry } from '../lib/countries';
 
+function calcLevel(count) {
+  return count >= 10 ? 4 : count >= 6 ? 3 : count >= 3 ? 2 : 1;
+}
+
+async function syncOriginTrees(userId, oldOriginsStr, newOriginsStr) {
+  const oldOrigins = oldOriginsStr ? oldOriginsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const newOrigins = newOriginsStr ? newOriginsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  if (oldOrigins.length > 0) {
+    const fraction = 1 / oldOrigins.length;
+    for (const country of oldOrigins) {
+      const { data: tree } = await supabase.from('origin_trees').select().eq('user_id', userId).eq('country', country).maybeSingle();
+      if (tree) {
+        const newCount = Math.max(0, tree.count - fraction);
+        if (newCount <= 0) {
+          await supabase.from('origin_trees').delete().eq('id', tree.id);
+        } else {
+          await supabase.from('origin_trees').update({ count: newCount, level: calcLevel(newCount) }).eq('id', tree.id);
+        }
+      }
+    }
+  }
+
+  if (newOrigins.length > 0) {
+    const fraction = 1 / newOrigins.length;
+    for (const country of newOrigins) {
+      const { data: tree } = await supabase.from('origin_trees').select().eq('user_id', userId).eq('country', country).maybeSingle();
+      if (tree) {
+        const newCount = tree.count + fraction;
+        await supabase.from('origin_trees').update({ count: newCount, level: calcLevel(newCount) }).eq('id', tree.id);
+      } else {
+        await supabase.from('origin_trees').insert({ user_id: userId, country, count: fraction, level: calcLevel(fraction) });
+      }
+    }
+  }
+}
+
 const ROAST_LEVELS = ['浅煎り', '中浅煎り', '中煎り', '中深煎り', '深煎り', '極深煎り'];
 const BREW_METHODS = ['drip', 'espresso', 'latte', 'cappuccino', 'pour_over', 'french_press', 'aeropress', 'cold_brew', 'other'];
 const JAPAN_PREFECTURES = ['北海道','青森','岩手','宮城','秋田','山形','福島','茨城','栃木','群馬','埼玉','千葉','東京','神奈川','新潟','富山','石川','福井','山梨','長野','静岡','愛知','三重','滋賀','京都','大阪','兵庫','奈良','和歌山','鳥取','島根','岡山','広島','山口','徳島','香川','愛媛','高知','福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島','沖縄'];
@@ -159,6 +196,7 @@ export default function EditPostScreen({ route, navigation }) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const newPhotoUrl = await uploadNewImage(user.id);
+      const shopNameChanged = shopName.trim() !== (post.shop_name ?? '');
 
       const { error: postError } = await supabase
         .from('posts')
@@ -171,6 +209,7 @@ export default function EditPostScreen({ route, navigation }) {
           memo,
           photo_url: newPhotoUrl,
           prefecture: prefecture || null,
+          ...(shopNameChanged ? { lat: null, lng: null, place_id: null } : {}),
         })
         .eq('id', post.id);
 
@@ -182,6 +221,8 @@ export default function EditPostScreen({ route, navigation }) {
       } else {
         await supabase.from('ratings').insert({ post_id: post.id, ...ratings, score });
       }
+
+      await syncOriginTrees(user.id, post.origin_country ?? '', origins.join(','));
 
       Alert.alert('更新しました');
       navigation.goBack();
@@ -198,9 +239,16 @@ export default function EditPostScreen({ route, navigation }) {
       {
         text: '削除', style: 'destructive', onPress: async () => {
           setLoading(true);
-          const { error } = await supabase.from('posts').delete().eq('id', post.id);
-          if (error) { Alert.alert('エラー', error.message); setLoading(false); return; }
-          navigation.goBack();
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { error } = await supabase.from('posts').delete().eq('id', post.id);
+            if (error) throw error;
+            await syncOriginTrees(user.id, post.origin_country ?? '', '');
+            navigation.goBack();
+          } catch (e) {
+            Alert.alert('エラー', e.message);
+            setLoading(false);
+          }
         }
       },
     ]);

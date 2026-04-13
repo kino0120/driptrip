@@ -47,8 +47,13 @@ export default function ScoreSlider({ value, onChange }) {
     <View style={styles.container}>
       <Text style={styles.score}>{(value ?? 0).toFixed(1)} <Text style={styles.max}>/ 5.0</Text></Text>
       <View
+        ref={trackRef}
         style={styles.trackWrap}
-        onLayout={(e) => { trackX.current = e.nativeEvent.layout.x; }}
+        onLayout={() => {
+          trackRef.current?.measure((_x, _y, _w, _h, pageX) => {
+            trackX.current = pageX;
+          });
+        }}
         {...panResponder.panHandlers}
       >
         <View style={styles.track}>
