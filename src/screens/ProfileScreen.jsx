@@ -29,22 +29,27 @@ export default function ProfileScreen({ navigation }) {
   );
 
   async function load() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    setUser(user);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      setUser(user);
 
-    const [{ data: prof }, { data: treesData }, { data: postsData }, { data: likesData }] = await Promise.all([
-      supabase.from('users').select().eq('id', user.id).single(),
-      supabase.from('origin_trees').select().eq('user_id', user.id).order('count', { ascending: false }),
-      supabase.from('posts').select('*, ratings(*), users(display_name, username)').eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('likes').select('post_id, posts(shop_name, bean_name, origin_country, roast_level, memo, users(display_name, username), ratings(score))').eq('user_id', user.id).order('created_at', { ascending: false }),
-    ]);
+      const [{ data: prof }, { data: treesData }, { data: postsData }, { data: likesData }] = await Promise.all([
+        supabase.from('users').select().eq('id', user.id).single(),
+        supabase.from('origin_trees').select().eq('user_id', user.id).order('count', { ascending: false }),
+        supabase.from('posts').select('*, ratings(*), users(display_name, username)').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('likes').select('post_id, posts(shop_name, bean_name, origin_country, roast_level, memo, users(display_name, username), ratings(score))').eq('user_id', user.id).order('created_at', { ascending: false }),
+      ]);
 
-    setProfile(prof);
-    setTrees(treesData ?? []);
-    setPosts(postsData ?? []);
-    setLikedPosts(likesData ?? []);
-    setLoading(false);
+      setProfile(prof);
+      setTrees(treesData ?? []);
+      setPosts(postsData ?? []);
+      setLikedPosts(likesData ?? []);
+    } catch (e) {
+      console.error('ProfileScreen load error:', e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#6B4226" /></View>;

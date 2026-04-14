@@ -1,20 +1,17 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, useWindowDimensions } from 'react-native';
 import { useState } from 'react';
 import Svg, { Polygon, Text as SvgText, Circle, G, Rect } from 'react-native-svg';
 
-const W = Dimensions.get('window').width - 32;
-const H = W * 0.54;
-
 const TREE_EMOJI = ['', '🌱', '🌿', '🌳', '🌲'];
 
-function proj(lng, lat) {
+function proj(lng, lat, W, H) {
   const x = ((lng + 180) / 360) * W;
   const y = ((90 - lat) / 180) * H;
   return [x, y];
 }
 
-function pts(coords) {
-  return coords.map(([lng, lat]) => proj(lng, lat).join(',')).join(' ');
+function pts(coords, W, H) {
+  return coords.map(([lng, lat]) => proj(lng, lat, W, H).join(',')).join(' ');
 }
 
 const LAND = [
@@ -74,10 +71,11 @@ const COUNTRY_COORDS = {
   'Jamaica':    [-77.3, 18.1],
 };
 
-const TOOLTIP_W = 100;
-const TOOLTIP_H = 22;
-
 export default function WorldMap({ trees = [] }) {
+  const { width } = useWindowDimensions();
+  const W = width - 32;
+  const H = W * 0.54;
+
   const [selected, setSelected] = useState(null); // country string
   const treeMap = {};
   trees.forEach(t => { treeMap[t.country] = t; });
@@ -110,7 +108,7 @@ export default function WorldMap({ trees = [] }) {
             {LAND.map((region, i) => (
               <Polygon
                 key={i}
-                points={pts(region)}
+                points={pts(region, W, H)}
                 fill="#DDD3C4"
                 stroke="#BFB09E"
                 strokeWidth={0.5}
@@ -118,7 +116,7 @@ export default function WorldMap({ trees = [] }) {
             ))}
 
             {Object.entries(COUNTRY_COORDS).map(([country, [lng, lat]]) => {
-              const [x, y] = proj(lng, lat);
+              const [x, y] = proj(lng, lat, W, H);
               const tree = treeMap[country];
               if (!tree) return null;
               return (

@@ -1,19 +1,17 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useState } from 'react';
 import Svg, { Polygon, Circle, G, Rect, Text as SvgText } from 'react-native-svg';
 
-const W = Dimensions.get('window').width - 32;
 const LNG_MIN = 127, LNG_MAX = 146, LAT_MIN = 26, LAT_MAX = 46;
-const H = Math.round(W * 1.3);
 
-function proj(lng, lat) {
+function proj(lng, lat, W, H) {
   const x = (lng - LNG_MIN) / (LNG_MAX - LNG_MIN) * W;
   const y = (LAT_MAX - lat) / (LAT_MAX - LAT_MIN) * H;
   return [x, y];
 }
 
-function pts(coords) {
-  return coords.map(([lng, lat]) => proj(lng, lat).join(',')).join(' ');
+function pts(coords, W, H) {
+  return coords.map(([lng, lat]) => proj(lng, lat, W, H).join(',')).join(' ');
 }
 
 const ISLANDS = [
@@ -77,6 +75,10 @@ const TOOLTIP_W = 120;
 const TOOLTIP_H = 24;
 
 export default function JapanMap({ posts = [] }) {
+  const { width } = useWindowDimensions();
+  const W = width - 32;
+  const H = Math.round(W * 1.3);
+
   const [tooltip, setTooltip] = useState(null); // { name, x, y }
 
   // lat/lng があるもの → 個別ピン
@@ -114,12 +116,12 @@ export default function JapanMap({ posts = [] }) {
           <Svg width={W} height={H}>
             <Rect width={W} height={H} fill="#C5DBF0" rx={10} />
             {ISLANDS.map((region, i) => (
-              <Polygon key={i} points={pts(region)} fill="#DDD3C4" stroke="#BFB09E" strokeWidth={0.5} />
+              <Polygon key={i} points={pts(region, W, H)} fill="#DDD3C4" stroke="#BFB09E" strokeWidth={0.5} />
             ))}
 
             {/* 都道府県ドット（lat/lngなし） */}
             {PREFECTURES.map(pref => {
-              const [x, y] = proj(pref.lng, pref.lat);
+              const [x, y] = proj(pref.lng, pref.lat, W, H);
               const count = prefMap[pref.name] || 0;
               if (count === 0) return null;
               const r = count >= 5 ? 8 : count >= 3 ? 6 : 5;
@@ -135,7 +137,7 @@ export default function JapanMap({ posts = [] }) {
 
             {/* 個別店舗ピン */}
             {shopPins.map((pin, i) => {
-              const [x, y] = proj(pin.lng, pin.lat);
+              const [x, y] = proj(pin.lng, pin.lat, W, H);
               const isSelected = tooltip?.name === pin.shop_name && Math.abs(tooltip?.x - Math.min(Math.max(x, TOOLTIP_W / 2 + 4), W - TOOLTIP_W / 2 - 4)) < 1;
               return (
                 <G key={i} onPress={() => handlePinPress(pin, x, y)}>
