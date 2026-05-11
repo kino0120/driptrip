@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { useState } from 'react';
 import Svg, { Polygon, Circle, G, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -103,17 +103,8 @@ export default function JapanMap({ posts = [] }) {
 
   return (
     <View style={styles.wrap}>
-      <ScrollView
-        maximumZoomScale={4}
-        minimumZoomScale={1}
-        bouncesZoom
-        centerContent
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        onScrollBeginDrag={() => setTooltip(null)}
-      >
-        <View style={{ width: W, height: H }}>
-          <Svg width={W} height={H}>
+      <View style={{ width: W, height: H }}>
+        <Svg width={W} height={H}>
             <Rect width={W} height={H} fill="#C5DBF0" rx={10} />
             {ISLANDS.map((region, i) => (
               <Polygon key={i} points={pts(region, W, H)} fill="#DDD3C4" stroke="#BFB09E" strokeWidth={0.5} />
@@ -172,11 +163,9 @@ export default function JapanMap({ posts = [] }) {
               </G>
             )}
           </Svg>
-        </View>
-      </ScrollView>
+      </View>
 
-      {/* ヒントテキスト */}
-      <Text style={styles.hint}>ピンチで拡大 / ピンをタップで店名表示</Text>
+      <Text style={styles.hint}>ピンをタップで店名表示</Text>
     </View>
   );
 }

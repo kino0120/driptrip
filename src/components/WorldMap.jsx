@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, useWindowDimensions } from 'react-native';
 import { useState } from 'react';
 import Svg, { Polygon, Text as SvgText, Circle, G, Rect } from 'react-native-svg';
 
@@ -92,45 +92,35 @@ export default function WorldMap({ trees = [] }) {
 
   return (
     <View style={styles.wrap}>
-      <ScrollView
-        maximumZoomScale={4}
-        minimumZoomScale={1}
-        bouncesZoom
-        centerContent
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        onScrollBeginDrag={() => setSelected(null)}
-      >
-        <View style={{ width: W, height: H }}>
-          <Svg width={W} height={H}>
-            <Rect width={W} height={H} fill="#C5DBF0" rx={10} />
+      <View style={{ width: W, height: H }}>
+        <Svg width={W} height={H}>
+          <Rect width={W} height={H} fill="#C5DBF0" rx={10} />
 
-            {LAND.map((region, i) => (
-              <Polygon
-                key={i}
-                points={pts(region, W, H)}
-                fill="#DDD3C4"
-                stroke="#BFB09E"
-                strokeWidth={0.5}
-              />
-            ))}
+          {LAND.map((region, i) => (
+            <Polygon
+              key={i}
+              points={pts(region, W, H)}
+              fill="#DDD3C4"
+              stroke="#BFB09E"
+              strokeWidth={0.5}
+            />
+          ))}
 
-            {Object.entries(COUNTRY_COORDS).map(([country, [lng, lat]]) => {
-              const [x, y] = proj(lng, lat, W, H);
-              const tree = treeMap[country];
-              if (!tree) return null;
-              return (
-                <G key={country} onPress={() => handleTreePress(country)}>
-                  <Circle cx={x} cy={y} r={14} fill="transparent" />
-                  <SvgText x={x} y={y + 6} fontSize={13} textAnchor="middle">
-                    {TREE_EMOJI[tree.level] ?? '🌱'}
-                  </SvgText>
-                </G>
-              );
-            })}
-          </Svg>
-        </View>
-      </ScrollView>
+          {Object.entries(COUNTRY_COORDS).map(([country, [lng, lat]]) => {
+            const [x, y] = proj(lng, lat, W, H);
+            const tree = treeMap[country];
+            if (!tree) return null;
+            return (
+              <G key={country} onPress={() => handleTreePress(country)}>
+                <Circle cx={x} cy={y} r={14} fill="transparent" />
+                <SvgText x={x} y={y + 6} fontSize={13} textAnchor="middle">
+                  {TREE_EMOJI[tree.level] ?? '🌱'}
+                </SvgText>
+              </G>
+            );
+          })}
+        </Svg>
+      </View>
 
       {selected && (
         <View style={styles.selectedCard}>
@@ -141,7 +131,7 @@ export default function WorldMap({ trees = [] }) {
         </View>
       )}
 
-      <Text style={styles.hint}>ピンチで拡大 / 木をタップで詳細表示</Text>
+      <Text style={styles.hint}>木をタップで詳細表示</Text>
 
       {trees.length > 0 && (
         <View style={styles.legend}>

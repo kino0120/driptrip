@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, ActionSheetIOS, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, FlatList } from 'react-native';
 import { useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import TextRecognition, { TextRecognitionScript } from '@react-native-ml-kit/text-recognition';
@@ -93,22 +93,18 @@ export default function PostScreen() {
   }
 
   function applyText(text) {
-    ActionSheetIOS.showActionSheetWithOptions(
+    Alert.alert(text, null, [
+      { text: 'お店の名前として使う', onPress: () => { setShopName(text); closeOcrModal(); } },
+      { text: '豆の名前として使う', onPress: () => { setBeanName(text); closeOcrModal(); } },
       {
-        title: text,
-        options: ['お店の名前として使う', '豆の名前として使う', '国として使う', 'キャンセル'],
-        cancelButtonIndex: 3,
-      },
-      (idx) => {
-        if (idx === 0) { setShopName(text); closeOcrModal(); }
-        if (idx === 1) { setBeanName(text); closeOcrModal(); }
-        if (idx === 2) {
+        text: '国として使う', onPress: () => {
           const c = normalizeCountry(text);
           if (c) setOrigins(prev => prev.includes(c) ? prev : [...prev, c]);
           closeOcrModal();
-        }
-      }
-    );
+        },
+      },
+      { text: 'キャンセル', style: 'cancel' },
+    ]);
   }
 
   function closeOcrModal() {

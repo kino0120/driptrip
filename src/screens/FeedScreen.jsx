@@ -17,22 +17,27 @@ export default function FeedScreen() {
   );
 
   async function fetchPosts() {
-    const { data: { user } } = await supabase.auth.getUser();
-    setCurrentUserId(user?.id ?? null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id ?? null);
 
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        users(username, display_name, avatar_url),
-        ratings(bitterness, acidity, sweetness, body, aroma, aftertaste, score),
-        likes(user_id)
-      `)
-      .eq('is_public', true)
-      .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          users(username, display_name, avatar_url),
+          ratings(bitterness, acidity, sweetness, body, aroma, aftertaste, score),
+          likes(user_id)
+        `)
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
 
-    if (!error) setPosts(data);
-    setLoading(false);
+      if (!error) setPosts(data ?? []);
+    } catch (e) {
+      console.error('fetchPosts error:', e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRefresh() {
@@ -49,7 +54,7 @@ export default function FeedScreen() {
     setPosts(prev => prev.map(p => {
       if (p.id !== post.id) return p;
       const newLikes = isLiked
-        ? p.likes.filter(l => l.user_id !== currentUserId)
+        ? (p.likes ?? []).filter(l => l.user_id !== currentUserId)
         : [...(p.likes ?? []), { user_id: currentUserId }];
       return { ...p, likes: newLikes };
     }));

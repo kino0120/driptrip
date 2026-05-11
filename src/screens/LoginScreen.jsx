@@ -11,22 +11,29 @@ export default function LoginScreen({ navigation }) {
 
   async function handleAuth() {
     setLoading(true);
-    if (isSignUp) {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) { Alert.alert('エラー', error.message); setLoading(false); return; }
+    let shouldGoBack = false;
+    try {
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) { Alert.alert('エラー', error.message); return; }
 
-      if (data.user) {
-        await supabase.from('users').insert({ id: data.user.id, username });
-        navigation.goBack();
+        if (data.user) {
+          await supabase.from('users').insert({ id: data.user.id, username });
+          shouldGoBack = true;
+        } else {
+          Alert.alert('エラー', '登録に失敗しました');
+        }
       } else {
-        Alert.alert('エラー', '登録に失敗しました');
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { Alert.alert('エラー', error.message); return; }
+        shouldGoBack = true;
       }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) { Alert.alert('エラー', error.message); setLoading(false); return; }
-      navigation.goBack();
+    } catch (e) {
+      Alert.alert('エラー', 'ネットワークエラーが発生しました');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+    if (shouldGoBack) navigation.goBack();
   }
 
   return (

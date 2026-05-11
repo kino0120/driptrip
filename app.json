@@ -14,10 +14,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kino0120.driptrip",
-      "buildNumber": "6",
+      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSPhotoLibraryUsageDescription": "DripTrip accesses your photo library for two purposes: (1) to attach photos to your coffee log posts — for example, a photo of your latte art or a café interior — and (2) to scan coffee bean package labels using OCR so that details such as origin country, roast level, and flavor notes are filled in automatically. Your photos are used only within the app and are never shared with third parties."
+        "NSPhotoLibraryUsageDescription": "コーヒーログの投稿に写真を添付するため（例：飲んだコーヒーやラテアート、訪れたカフェの写真）と、コーヒー豆パッケージをスキャンして産地・焙煎度などを自動入力するために使用します。取得した写真はアプリ内のみで使用し、外部に送信されません。"
       }
     },
     "android": {
