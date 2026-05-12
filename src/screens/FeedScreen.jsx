@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Image, Dimensions, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Image, Dimensions, TouchableOpacity, Linking, Modal, ScrollView, useWindowDimensions } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
@@ -104,6 +104,8 @@ function openAmazonSearch(post) {
 }
 
 function PostCard({ post, currentUserId, onLike }) {
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
+  const { width: screenW, height: screenH } = useWindowDimensions();
   const r = post.ratings?.[0];
   const hasRatings = r && Object.values(r).some(v => v != null);
   const score = r?.score;
@@ -122,7 +124,34 @@ function PostCard({ post, currentUserId, onLike }) {
       </View>
       <View style={styles.row}>
         {post.photo_url && (
-          <Image source={{ uri: post.photo_url }} style={styles.photo} resizeMode="cover" />
+          <>
+            <TouchableOpacity onPress={() => setPhotoModalVisible(true)} activeOpacity={0.9}>
+              <Image source={{ uri: post.photo_url }} style={styles.photo} resizeMode="cover" />
+            </TouchableOpacity>
+            <Modal
+              visible={photoModalVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setPhotoModalVisible(false)}
+            >
+              <View style={styles.modalBackdrop}>
+                <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setPhotoModalVisible(false)}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+                <ScrollView
+                  style={{ flex: 1 }}
+                  contentContainerStyle={{ justifyContent: 'center', alignItems: 'center', width: screenW, height: screenH }}
+                  maximumZoomScale={5}
+                  minimumZoomScale={1}
+                  showsHorizontalScrollIndicator={false}
+                  showsVerticalScrollIndicator={false}
+                  centerContent
+                >
+                  <Image source={{ uri: post.photo_url }} style={{ width: screenW, height: screenH }} resizeMode="contain" />
+                </ScrollView>
+              </View>
+            </Modal>
+          </>
         )}
         <View style={[styles.info, !post.photo_url && { flex: 1 }]}>
           <Text style={styles.shopName}>{post.shop_name}</Text>
@@ -153,7 +182,7 @@ function PostCard({ post, currentUserId, onLike }) {
           </Text>
           {likesCount > 0 && <Text style={[styles.likeCount, isLiked && styles.likeCountActive]}>{likesCount}</Text>}
         </TouchableOpacity>
-        {hasSearchTarget && (
+        {false && hasSearchTarget && (
           <TouchableOpacity style={styles.amazonBtn} onPress={() => openAmazonSearch(post)} activeOpacity={0.75}>
             <Text style={styles.amazonBtnText}>この豆を探す →</Text>
           </TouchableOpacity>
@@ -198,4 +227,7 @@ const styles = StyleSheet.create({
   likeCountActive: { color: '#E05C5C' },
   amazonBtn: { marginLeft: 'auto', backgroundColor: '#FF9900', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5 },
   amazonBtnText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)' },
+  modalCloseBtn: { position: 'absolute', top: 54, right: 20, zIndex: 10, padding: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20 },
+  modalCloseText: { color: '#fff', fontSize: 20, lineHeight: 22 },
 });

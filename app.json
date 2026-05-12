@@ -14,7 +14,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kino0120.driptrip",
-      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "コーヒーログの投稿に写真を添付するため（例：飲んだコーヒーやラテアート、訪れたカフェの写真）と、コーヒー豆パッケージをスキャンして産地・焙煎度などを自動入力するために使用します。取得した写真はアプリ内のみで使用し、外部に送信されません。"
