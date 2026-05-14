@@ -3,6 +3,11 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import RadarChart from '../components/RadarChart';
+import { COUNTRIES } from '../lib/countries';
+
+function toJa(en) {
+  return COUNTRIES.find(c => c.en === en)?.ja ?? en;
+}
 
 export default function FeedScreen() {
   const [posts, setPosts] = useState([]);
@@ -123,7 +128,7 @@ function PostCard({ post, currentUserId, onLike }) {
         </View>
       </View>
       <View style={styles.row}>
-        {post.photo_url && (
+        {post.photo_url ? (
           <>
             <TouchableOpacity onPress={() => setPhotoModalVisible(true)} activeOpacity={0.9}>
               <Image source={{ uri: post.photo_url }} style={styles.photo} resizeMode="cover" />
@@ -152,11 +157,17 @@ function PostCard({ post, currentUserId, onLike }) {
               </View>
             </Modal>
           </>
-        )}
+        ) : null}
         <View style={[styles.info, !post.photo_url && { flex: 1 }]}>
-          <Text style={styles.shopName}>{post.shop_name}</Text>
-          {post.bean_name ? <Text style={styles.beanName}>{post.bean_name}</Text> : null}
-          {post.origin_country ? <Text style={styles.meta}>{post.origin_country.replace(/,/g, ' · ')}</Text> : null}
+          <View>
+            <Text style={styles.shopName}>{post.shop_name}</Text>
+            {post.bean_name ? <Text style={styles.beanName}>{post.bean_name}</Text> : null}
+            {post.origin_country ? (
+              <Text style={styles.meta}>
+                {post.origin_country.split(',').map(en => toJa(en)).join(' · ')}
+              </Text>
+            ) : null}
+          </View>
           {hasRatings && (
             <View style={styles.radarWrap}>
               <RadarChart
@@ -172,9 +183,13 @@ function PostCard({ post, currentUserId, onLike }) {
               />
             </View>
           )}
-          {post.memo ? <Text style={styles.memo} numberOfLines={2}>{post.memo}</Text> : null}
         </View>
       </View>
+      {post.memo ? (
+        <View style={styles.memoWrap}>
+          <Text style={styles.memo}>{post.memo}</Text>
+        </View>
+      ) : null}
       <View style={styles.cardFooter}>
         <TouchableOpacity style={styles.likeBtn} onPress={onLike} activeOpacity={0.7}>
           <Text style={[styles.likeIcon, isLiked && styles.likeIconActive]}>
@@ -211,13 +226,14 @@ const styles = StyleSheet.create({
   scoreBadge: { flexDirection: 'row', alignItems: 'baseline', backgroundColor: '#6B4226', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   scoreValue: { fontSize: 18, fontWeight: '800', color: '#fff' },
   scoreMax: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginLeft: 2 },
-  row: { flexDirection: 'row', paddingBottom: 16 },
-  photo: { width: 110, height: 110 * 1.25, borderRadius: 8, marginLeft: 16 },
-  info: { flex: 1, paddingHorizontal: 12 },
+  row: { flexDirection: 'row' },
+  photo: { width: 110, aspectRatio: 4 / 5, borderRadius: 8, marginLeft: 16 },
+  info: { flex: 1, paddingHorizontal: 12, paddingBottom: 12, justifyContent: 'space-between' },
   shopName: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
   beanName: { fontSize: 14, color: '#6B4226', marginTop: 2 },
   meta: { fontSize: 13, color: '#888', marginTop: 4 },
-  memo: { fontSize: 13, color: '#555', marginTop: 8 },
+  memoWrap: { paddingHorizontal: 16, paddingBottom: 12, marginTop: 8, alignSelf: 'stretch' },
+  memo: { fontSize: 13, color: '#555', textAlign: 'left' },
   radarWrap: { alignItems: 'center', marginTop: 8 },
   cardFooter: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, borderTopWidth: 1, borderTopColor: '#F5F5F5', paddingTop: 8 },
   likeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },

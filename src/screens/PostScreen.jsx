@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import TextRecognition, { TextRecognitionScript } from '@react-native-ml-kit/text-recognition';
@@ -233,7 +233,7 @@ export default function PostScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { Alert.alert('ログインが必要です'); return; }
     if (!shopName.trim()) { Alert.alert('店名を入力してください'); return; }
-    if (origins.length === 0) { Alert.alert('国を1つ以上入力してください'); return; }
+    if (!image) { Alert.alert('写真を追加してください'); return; }
 
     setLoading(true);
     try {
@@ -245,7 +245,7 @@ export default function PostScreen() {
 
       const photoUrl = await uploadImage(user.id);
 
-      const originStr = origins.join(',');
+      const originStr = origins.length > 0 ? origins.join(',') : null;
       const { data: post, error } = await supabase
         .from('posts')
         .insert({ user_id: user.id, shop_name: shopName, bean_name: beanName, origin_country: originStr, roast_level: roast, brew_method: brew, memo, photo_url: photoUrl, prefecture: prefecture || null, lat: shopLat, lng: shopLng, place_id: shopPlaceId })
@@ -306,7 +306,8 @@ export default function PostScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} scrollEnabled={scrollEnabled}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} scrollEnabled={scrollEnabled} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>コーヒーを記録</Text>
 
       <TouchableOpacity style={styles.imagePicker} onPress={image ? () => setPhotoPreviewVisible(true) : pickImage}>
@@ -448,7 +449,7 @@ export default function PostScreen() {
         )}
       </View>
 
-      <Text style={styles.label}>国 <Text style={styles.required}>（必須1つ以上）</Text></Text>
+      <Text style={styles.label}>国 <Text style={styles.required}>（任意）</Text></Text>
       {origins.length > 0 && (
         <View style={styles.row}>
           {origins.map((o, i) => (
@@ -546,12 +547,13 @@ export default function PostScreen() {
       <Text style={styles.label}>総合スコア</Text>
       <ScoreSlider value={score ?? 0} onChange={setScore} />
 
-      <Input label="メモ" value={memo} onChangeText={setMemo} placeholder="感想など..." multiline />
+      <Input label="メモ（200文字まで）" value={memo} onChangeText={setMemo} placeholder="感想など..." multiline maxLength={200} />
 
       <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handlePost} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? '投稿中...' : '投稿する'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
