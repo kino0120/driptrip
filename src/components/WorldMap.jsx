@@ -1,6 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Linking, useWindowDimensions } from 'react-native';
 import { useState } from 'react';
 import Svg, { Polygon, Text as SvgText, Circle, G, Rect } from 'react-native-svg';
+import { COUNTRIES } from '../lib/countries';
+
+function toJa(en) { return COUNTRIES.find(c => c.en === en)?.ja ?? en; }
 
 const TREE_EMOJI = ['', '🌱', '🌿', '🌳', '🌲'];
 
@@ -124,7 +127,7 @@ export default function WorldMap({ trees = [] }) {
 
       {selected && (
         <View style={styles.selectedCard}>
-          <Text style={styles.selectedCountry}>{selected}</Text>
+          <Text style={styles.selectedCountry}>{toJa(selected)}</Text>
           <TouchableOpacity style={styles.amazonBtn} onPress={() => openAmazon(selected)} activeOpacity={0.75}>
             <Text style={styles.amazonBtnText}>この産地の豆を探す →</Text>
           </TouchableOpacity>
@@ -138,7 +141,7 @@ export default function WorldMap({ trees = [] }) {
           {trees.map(t => (
             <View key={t.id} style={styles.legendItem}>
               <Text style={styles.legendEmoji}>{TREE_EMOJI[t.level]}</Text>
-              <Text style={styles.legendLabel}>{t.country}</Text>
+              <Text style={styles.legendLabel}>{toJa(t.country)}</Text>
             </View>
           ))}
         </View>

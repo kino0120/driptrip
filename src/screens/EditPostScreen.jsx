@@ -12,8 +12,8 @@ function calcLevel(count) {
 }
 
 async function syncOriginTrees(userId, oldOriginsStr, newOriginsStr) {
-  const oldOrigins = oldOriginsStr ? oldOriginsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const newOrigins = newOriginsStr ? newOriginsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const oldOrigins = oldOriginsStr ? oldOriginsStr.split(',').map(s => normalizeCountry(s.trim())).filter(Boolean) : [];
+  const newOrigins = newOriginsStr ? newOriginsStr.split(',').map(s => normalizeCountry(s.trim())).filter(Boolean) : [];
 
   if (oldOrigins.length > 0) {
     const fraction = 1 / oldOrigins.length;

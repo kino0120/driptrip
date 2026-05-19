@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, Modal, Dimensions, FlatList } from 'react-native';
 import { useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import TextRecognition, { TextRecognitionScript } from '@react-native-ml-kit/text-recognition';
@@ -43,6 +43,7 @@ export default function PostScreen() {
   const [shopLng, setShopLng] = useState(null);
   const [placeSuggestions, setPlaceSuggestions] = useState([]);
   const placeDebounceRef = useRef(null);
+  const scrollRef = useRef(null);
 
   async function pickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -306,8 +307,7 @@ export default function PostScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} scrollEnabled={scrollEnabled} keyboardShouldPersistTaps="handled">
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.content} scrollEnabled={scrollEnabled} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
       <Text style={styles.title}>コーヒーを記録</Text>
 
       <TouchableOpacity style={styles.imagePicker} onPress={image ? () => setPhotoPreviewVisible(true) : pickImage}>
@@ -547,13 +547,12 @@ export default function PostScreen() {
       <Text style={styles.label}>総合スコア</Text>
       <ScoreSlider value={score ?? 0} onChange={setScore} />
 
-      <Input label="メモ（200文字まで）" value={memo} onChangeText={setMemo} placeholder="感想など..." multiline maxLength={200} />
+      <Input label="メモ（200文字まで）" value={memo} onChangeText={setMemo} placeholder="感想など..." multiline maxLength={200} onFocus={() => { setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 350); }} />
 
       <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handlePost} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? '投稿中...' : '投稿する'}</Text>
       </TouchableOpacity>
     </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 

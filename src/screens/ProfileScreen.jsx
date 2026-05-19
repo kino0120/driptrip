@@ -4,6 +4,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import WorldMap from '../components/WorldMap';
 import JapanMap from '../components/JapanMap';
+import { COUNTRIES } from '../lib/countries';
+
+function toJa(en) { return COUNTRIES.find(c => c.en === en)?.ja ?? en; }
 
 const PAGE_SIZE = 10;
 
@@ -13,7 +16,7 @@ function PostCard({ item, tab, navigation }) {
   const r = p?.ratings?.[0];
   const score = r?.score;
   const username = p?.users?.display_name ?? p?.users?.username;
-  const origin = p?.origin_country?.replace(/,/g, ' · ');
+  const origin = p?.origin_country ? p.origin_country.split(',').map(en => toJa(en)).join(' · ') : null;
 
   const card = (
     <View style={styles.postCard}>
